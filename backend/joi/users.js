@@ -13,6 +13,11 @@ const schemas = {
     password: Joi.string().required(),
     role: Joi.string().valid('Driver', 'Shipper').required(),
   }),
+  changePassword: Joi.object().keys({
+    password: Joi.string().required(),
+    newPassword: Joi.string().required(),
+    confirmNewPassword: Joi.string().required(),
+  }),
 };
 
 module.exports = schemas;

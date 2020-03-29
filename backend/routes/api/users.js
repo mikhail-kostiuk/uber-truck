@@ -22,26 +22,26 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({error: `Passwords don't match`});
     }
 
-    let user = null;
+    let userDoc = null;
 
     if (role === 'Driver') {
-      user = await Driver.findByEmail(email);
+      userDoc = await Driver.findByEmail(email);
     } else {
-      user = await Shipper.findByEmail(email);
+      userDoc = await Shipper.findByEmail(email);
     }
 
-    if (user) {
+    if (userDoc) {
       return res.status(400).json({error: 'User already exists'});
     } else {
-      let createdUser = null;
+      let createdUserDoc = null;
 
       if (role === 'Driver') {
-        createdUser = await Driver.add(name, email, password);
+        createdUserDoc = await Driver.add(name, email, password);
       } else {
-        createdUser = await Shipper.add(name, email, password);
+        createdUserDoc = await Shipper.add(name, email, password);
       }
 
-      return res.status(200).json(createdUser);
+      return res.status(200).json(createdUserDoc);
     }
   } catch (err) {
     // console.log(err);
@@ -62,23 +62,23 @@ router.post('/login', async (req, res) => {
 
     const {email, password, role} = req.body;
 
-    let user = null;
+    let userDoc = null;
 
     if (role === 'Driver') {
-      user = await Driver.findByEmail(email);
+      userDoc = await Driver.findByEmail(email);
     } else {
-      user = await Shipper.findByEmail(email);
+      userDoc = await Shipper.findByEmail(email);
     }
 
-    if (!user) {
+    if (!userDoc) {
       return res.status(400).json({error: `User doesn't exist`});
     }
 
-    if (!(await user.verifyPassword(password))) {
+    if (!(await userDoc.verifyPassword(password))) {
       return res.status(400).json({error: `Wrong password`});
     }
 
-    const token = createJwtToken(user, role);
+    const token = createJwtToken(userDoc, role);
 
     return res.status(200).json({token});
   } catch (err) {
@@ -90,6 +90,7 @@ router.post('/login', async (req, res) => {
 
 router.get('/me', async (req, res) => {
   // console.log(req);
+
   const {user} = req;
 
   if (!user) {
@@ -98,26 +99,63 @@ router.get('/me', async (req, res) => {
 
   try {
     if (user.role === 'Driver') {
-      const driver = await Driver.findById(user.id);
-      return res
-        .status(200)
-        .json({
-          id: driver.id,
-          name: driver.name,
-          email: driver.email,
-          role: user.role,
-        });
+      const userDoc = await Driver.findById(user.id);
+      return res.status(200).json({
+        id: userDoc.id,
+        name: userDoc.name,
+        email: userDoc.email,
+        role: user.role,
+      });
     } else {
-      const shipper = await Shipper.findById(user.id);
-      return res
-        .status(200)
-        .json({
-          id: shipper.id,
-          name: shipper.name,
-          email: shipper.email,
-          role: user.role,
-        });
+      const userDoc = await Shipper.findById(user.id);
+      return res.status(200).json({
+        id: userDoc.id,
+        name: userDoc.name,
+        email: userDoc.email,
+        role: user.role,
+      });
     }
+  } catch (err) {
+    // console.log(err);
+
+    return res.status(500).json({error: err.message});
+  }
+});
+
+router.post('/password', async (req, res) => {
+  // console.log(req);
+
+  try {
+    const {error} = await schemas.changePassword.validateAsync(req.body);
+
+    if (error) {
+      return res.status(400).json({error: error.details[0].message});
+    }
+
+    const {user} = req;
+    const {password, newPassword, confirmNewPassword} = req.body;
+
+    if (!user) {
+      return res.status(403).json({error: 'Unauthorized access'});
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      return res.status(400).json({error: `Passwords don't match`});
+    }
+
+    if (user.role === 'Driver') {
+      userDoc = await Driver.findById(user.id);
+    } else {
+      userDoc = await Shipper.findById(user.id);
+    }
+
+    if (!(await userDoc.verifyPassword(password))) {
+      return res.status(400).json({error: `Wrong old password`});
+    }
+
+    await userDoc.changePassword(newPassword);
+
+    return res.status(200).json({message: 'Password has been changed'});
   } catch (err) {
     // console.log(err);
 

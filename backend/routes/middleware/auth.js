@@ -5,7 +5,6 @@ module.exports = (req, res, next) => {
 
   if (user) {
     req.user = user;
-    console.log('user true');
   }
 
   next();

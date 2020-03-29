@@ -32,6 +32,12 @@ class ShipperClass {
   async verifyPassword(password) {
     return await comparePasswords(password, this.password);
   }
+
+  async changePassword(newPassword) {
+    const encryptedNewPassword = await encryptPassword(newPassword);
+
+    return await this.updateOne({password: encryptedNewPassword});
+  }
 }
 
 shipperSchema.loadClass(ShipperClass);

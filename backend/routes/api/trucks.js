@@ -25,15 +25,13 @@ router.post('/', async (req, res) => {
     const driverDoc = await Driver.findById(user.id);
 
     if (!driverDoc) {
-      return res.status(500).json({error: 'Driver not found in database'});
+      return res.status(500).json({error: 'Driver not found'});
     }
 
     const truckDoc = await Truck.findByName(name);
 
     if (truckDoc) {
-      return res
-        .status(500)
-        .json({error: 'Truck with this name already exists'});
+      return res.status(500).json({error: 'Truck name already exists'});
     }
 
     const createdTruckDoc = await Truck.add(name, user.id, type);
@@ -59,7 +57,7 @@ router.get('/', async (req, res) => {
     const driverDoc = await Driver.findById(user.id);
 
     if (!driverDoc) {
-      return res.status(500).json({error: 'Driver not found in database'});
+      return res.status(500).json({error: 'Driver not found'});
     }
 
     const createdTrucksDocs = await driverDoc.getCreatedTrucks();
@@ -70,7 +68,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.put('/:truckId', async (req, res) => {
+router.patch('/:truckId', async (req, res) => {
   // console.log(req);
 
   const {user} = req;
@@ -81,25 +79,77 @@ router.put('/:truckId', async (req, res) => {
   }
 
   try {
-    const driverDoc = await Driver.findById(driverId);
+    const driverDoc = await Driver.findById(user.id);
 
     if (!driverDoc) {
-      return res.status(500).json({error: 'Driver not found in database'});
+      return res.status(500).json({error: 'Driver not found'});
     }
 
-    const truckDoc = await this.findById(truckId);
+    const truckDoc = await Truck.findById(truckId);
 
     if (!truckDoc) {
-      return res.status(500).json({error: 'Truck not found in database'});
+      return res.status(500).json({error: 'Truck not found'});
     }
 
     if (truckDoc.createdBy !== driverDoc.id) {
       return res.status(403).json({error: 'Unauthorized access'});
     }
 
-    const assignedTruckDoc = await truck.assignTo(user.id);
+    if (truckDoc.assignedTo === driverDoc.id) {
+      return res.status(500).json({error: 'Truck already assigned'});
+    }
+
+    const assignedTruckDoc = await truckDoc.assignTo(user.id);
 
     return res.status(200).json(assignedTruckDoc);
+  } catch (err) {
+    // console.log(err);
+
+    return res.status(500).json({error: err.message});
+  }
+});
+
+router.put('/:truckId', async (req, res) => {
+  // console.log(req);
+
+  try {
+    const {error} = await schemas.update.validateAsync(req.body);
+
+    if (error) {
+      return res.status(400).json({error: error.details[0].message});
+    }
+
+    const {user} = req;
+    const truckId = req.params.truckId;
+    const {name, status, type} = req.body;
+
+    if (!user || user.role !== 'Driver') {
+      return res.status(403).json({error: 'Unauthorized access'});
+    }
+
+    const driverDoc = await Driver.findById(user.id);
+
+    if (!driverDoc) {
+      return res.status(500).json({error: 'Driver not found'});
+    }
+
+    const truckDoc = await Truck.findById(truckId);
+
+    if (!truckDoc) {
+      return res.status(500).json({error: 'Truck not found'});
+    }
+
+    if (truckDoc.createdBy !== driverDoc.id) {
+      return res.status(403).json({error: 'Unauthorized access'});
+    }
+
+    if (truckDoc.assignedTo === driverDoc.id) {
+      return res.status(500).json({error: `Can't modify assigned truck`});
+    }
+
+    const modifiedTruckDoc = await truckDoc.updateOne({name, status, type});
+
+    return res.status(200).json(modifiedTruckDoc);
   } catch (err) {
     // console.log(err);
 

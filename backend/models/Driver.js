@@ -16,14 +16,6 @@ const driverSchema = new Schema({
     type: String,
     required: true,
   },
-  createdTrucks: [
-    {
-      truck: {
-        type: Schema.Types.ObjectId,
-        ref: 'Truck',
-      },
-    },
-  ],
 });
 
 class DriverClass {

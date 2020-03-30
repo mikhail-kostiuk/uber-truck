@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Truck = require('./Truck');
 const {encryptPassword, comparePasswords} = require('../utils/password');
 
 const {Schema} = mongoose;
@@ -37,6 +38,10 @@ class DriverClass {
     const encryptedNewPassword = await encryptPassword(newPassword);
 
     return await this.updateOne({password: encryptedNewPassword});
+  }
+
+  async getCreatedTrucks() {
+    return await Truck.find({createdBy: this.id});
   }
 }
 

@@ -1,4 +1,5 @@
 const express = require('express');
+const Driver = require('../../models/Truck');
 const Truck = require('../../models/Truck');
 const schemas = require('../../joi/trucks');
 
@@ -21,7 +22,21 @@ router.post('/', async (req, res) => {
       return res.status(403).json({error: 'Unauthorized access'});
     }
 
-    const createdTruckDoc = await Truck.add({name, driverId: user.id, type});
+    const driverDoc = await Driver.findById(driverId);
+
+    if (!driverDoc) {
+      return res.status(500).json({error: 'Driver not found in database'});
+    }
+
+    const truckDoc = await Truck.findByName(name);
+
+    if (truckDoc) {
+      return res
+        .status(500)
+        .json({error: 'Truck with this name already exists'});
+    }
+
+    const createdTruckDoc = await Truck.add(name, user.id, type);
 
     return res.status(200).json(createdTruckDoc);
   } catch (err) {
@@ -31,20 +46,44 @@ router.post('/', async (req, res) => {
   }
 });
 
+router.get('/', async (req, res) => {
+  // console.log(req);
+  try {
+  } catch (err) {
+    return res.status(500).json({error: err.message});
+  }
+});
+
 router.put('/:truckId', async (req, res) => {
   // console.log(req);
 
-  try {
-    const {user} = req;
-    const truckId = req.params.truckId;
+  const {user} = req;
+  const truckId = req.params.truckId;
 
-    if (!user || user.role !== 'Driver') {
+  if (!user || user.role !== 'Driver') {
+    return res.status(403).json({error: 'Unauthorized access'});
+  }
+
+  try {
+    const driverDoc = await Driver.findById(driverId);
+
+    if (!driverDoc) {
+      return res.status(500).json({error: 'Driver not found in database'});
+    }
+
+    const truckDoc = await this.findById(truckId);
+
+    if (!truckDoc) {
+      return res.status(500).json({error: 'Truck not found in database'});
+    }
+
+    if (truckDoc.createdBy !== driverDoc.id) {
       return res.status(403).json({error: 'Unauthorized access'});
     }
 
-    await Truck.assign({driverId: user.id, truckId});
+    const assignedTruckDoc = await truck.assignTo(user.id);
 
-    return res.status(200).json({message: 'Truck has been assigned'});
+    return res.status(200).json(assignedTruckDoc);
   } catch (err) {
     // console.log(err);
 

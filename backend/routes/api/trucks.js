@@ -5,7 +5,8 @@ const schemas = require('../../joi/trucks');
 const router = new express.Router();
 
 router.post('/', async (req, res) => {
-  console.log(req.body);
+  // console.log(req);
+
   try {
     const {error} = await schemas.add.validateAsync(req.body);
 
@@ -23,6 +24,27 @@ router.post('/', async (req, res) => {
     const createdTruckDoc = await Truck.add({name, driverId: user.id, type});
 
     return res.status(200).json(createdTruckDoc);
+  } catch (err) {
+    // console.log(err);
+
+    return res.status(500).json({error: err.message});
+  }
+});
+
+router.put('/:truckId', async (req, res) => {
+  // console.log(req);
+
+  try {
+    const {user} = req;
+    const truckId = req.params.truckId;
+
+    if (!user || user.role !== 'Driver') {
+      return res.status(403).json({error: 'Unauthorized access'});
+    }
+
+    await Truck.assign({driverId: user.id, truckId});
+
+    return res.status(200).json({message: 'Truck has been assigned'});
   } catch (err) {
     // console.log(err);
 

@@ -109,7 +109,7 @@ router.patch('/:truckId', async (req, res) => {
   }
 });
 
-router.put('/:truckId', async (req, res) => {
+router.put('/:id', async (req, res) => {
   // console.log(req);
 
   try {
@@ -120,7 +120,7 @@ router.put('/:truckId', async (req, res) => {
     }
 
     const {user} = req;
-    const truckId = req.params.truckId;
+    const id = req.params.id;
     const {name, status, type} = req.body;
 
     if (!user || user.role !== 'Driver') {
@@ -133,7 +133,7 @@ router.put('/:truckId', async (req, res) => {
       return res.status(500).json({error: 'Driver not found'});
     }
 
-    const truckDoc = await Truck.findById(truckId);
+    const truckDoc = await Truck.findById(id);
 
     if (!truckDoc) {
       return res.status(500).json({error: 'Truck not found'});
@@ -157,11 +157,11 @@ router.put('/:truckId', async (req, res) => {
   }
 });
 
-router.delete('/:truckId', async (req, res) => {
+router.delete('/:id', async (req, res) => {
   // console.log(req);
 
   const {user} = req;
-  const truckId = req.params.truckId;
+  const id = req.params.id;
 
   if (!user || user.role !== 'Driver') {
     return res.status(403).json({error: 'Unauthorized access'});
@@ -174,7 +174,7 @@ router.delete('/:truckId', async (req, res) => {
       return res.status(500).json({error: 'Driver not found'});
     }
 
-    const truckDoc = await Truck.findById(truckId);
+    const truckDoc = await Truck.findById(id);
 
     if (!truckDoc) {
       return res.status(500).json({error: 'Truck not found'});
@@ -188,7 +188,7 @@ router.delete('/:truckId', async (req, res) => {
       return res.status(500).json({error: `Can't delete assigned truck`});
     }
 
-    await truckDoc.deleteOne({id: truckId});
+    await truckDoc.deleteOne({id});
 
     return res.status(200).json({message: 'Truck has been deleted'});
   } catch (err) {

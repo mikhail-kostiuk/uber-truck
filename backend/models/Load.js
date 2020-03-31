@@ -73,6 +73,10 @@ class LoadClass {
   static async findByName(name) {
     return await this.findOne({name});
   }
+
+  async post() {
+    return await this.updateOne({status: 'POSTED'});
+  }
 }
 
 loadSchema.loadClass(LoadClass);

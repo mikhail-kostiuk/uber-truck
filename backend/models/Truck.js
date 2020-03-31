@@ -41,7 +41,7 @@ class TruckClass {
   async assignTo(driverId) {
     await this.findOneAndUpdate({assignedTo: driverId}, {assignedTo: null});
 
-    return await truckDoc.updateOne({assignedTo: driverId});
+    return await this.updateOne({assignedTo: driverId});
   }
 }
 

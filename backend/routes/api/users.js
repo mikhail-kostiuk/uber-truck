@@ -143,6 +143,8 @@ router.post('/password', async (req, res) => {
       return res.status(400).json({error: `Passwords don't match`});
     }
 
+    let userDoc = null;
+
     if (user.role === 'Driver') {
       userDoc = await Driver.findById(user.id);
     } else {
@@ -156,6 +158,39 @@ router.post('/password', async (req, res) => {
     await userDoc.changePassword(newPassword);
 
     return res.status(200).json({message: 'Password has been changed'});
+  } catch (err) {
+    // console.log(err);
+
+    return res.status(500).json({error: err.message});
+  }
+});
+
+router.delete('/', async (req, res) => {
+  // console.log(req);
+
+  try {
+    const {error} = await schemas.delete.validateAsync(req.body);
+
+    if (error) {
+      return res.status(400).json({error: error.details[0].message});
+    }
+
+    const {user} = req;
+    const {password} = req.body;
+
+    if (user.role !== 'Shipper') {
+      return res.status(403).json({error: 'Unauthorized access'});
+    }
+
+    const shipperDoc = await Shipper.findById(user.id);
+
+    if (!(await shipperDoc.verifyPassword(password))) {
+      return res.status(400).json({error: `Wrong password`});
+    }
+
+    await shipperDoc.deleteOne({id: user.id});
+
+    return res.status(200).json({message: 'Account has been deleted'});
   } catch (err) {
     // console.log(err);
 

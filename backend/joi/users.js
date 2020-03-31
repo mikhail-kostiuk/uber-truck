@@ -18,6 +18,9 @@ const schemas = {
     newPassword: Joi.string().required(),
     confirmNewPassword: Joi.string().required(),
   }),
+  delete: Joi.object().keys({
+    password: Joi.string().required(),
+  }),
 };
 
 module.exports = schemas;

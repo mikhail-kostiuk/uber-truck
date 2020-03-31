@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const auth = require('./routes/middleware/auth');
 const users = require('./routes/api/users');
 const trucks = require('./routes/api/trucks');
+const loads = require('./routes/api/loads');
 
 const PORT = process.env.PORT || 5050;
 
@@ -15,6 +16,7 @@ app.use(bodyParser.json());
 app.use(auth);
 app.use('/api/users', users);
 app.use('/api/trucks', trucks);
+app.use('/api/loads', loads);
 
 start();
 

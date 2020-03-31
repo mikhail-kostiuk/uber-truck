@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Load = require('./Load');
 const {encryptPassword, comparePasswords} = require('../utils/password');
 
 const {Schema} = mongoose;
@@ -37,6 +38,10 @@ class ShipperClass {
     const encryptedNewPassword = await encryptPassword(newPassword);
 
     return await this.updateOne({password: encryptedNewPassword});
+  }
+
+  async getCreatedLoads() {
+    return await Load.find({createdBy: this.id});
   }
 }
 

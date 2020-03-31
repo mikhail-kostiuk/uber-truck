@@ -22,6 +22,12 @@ router.post('/', async (req, res) => {
       return res.status(403).json({error: 'Unauthorized access'});
     }
 
+    const shipperDoc = await Shipper.findById(user.id);
+
+    if (!shipperDoc) {
+      return res.status(500).json({error: 'Shipper not found'});
+    }
+
     const loadDoc = await Load.findByName(name);
 
     if (loadDoc) {
@@ -87,6 +93,12 @@ router.put('/:id', async (req, res) => {
       return res.status(403).json({error: 'Unauthorized access'});
     }
 
+    const shipperDoc = await Shipper.findById(user.id);
+
+    if (!shipperDoc) {
+      return res.status(500).json({error: 'Driver not found'});
+    }
+
     const loadDoc = await Load.findById(id);
 
     if (!loadDoc) {
@@ -108,6 +120,47 @@ router.put('/:id', async (req, res) => {
     });
 
     return res.status(200).json({message: 'Load has been updated'});
+  } catch (err) {
+    // console.log(err);
+
+    return res.status(500).json({error: err.message});
+  }
+});
+
+router.delete('/:id', async (req, res) => {
+  // console.log(req);
+
+  const {user} = req;
+  const id = req.params.id;
+
+  if (!user || user.role !== 'Shipper') {
+    return res.status(403).json({error: 'Unauthorized access'});
+  }
+
+  const shipperDoc = await Shipper.findById(user.id);
+
+  if (!shipperDoc) {
+    return res.status(500).json({error: 'Shipper not found'});
+  }
+
+  try {
+    const loadDoc = await Load.findById(id);
+
+    if (!loadDoc) {
+      return res.status(500).json({error: 'Load not found'});
+    }
+
+    if (loadDoc.createdBy !== shipperDoc.id) {
+      return res.status(403).json({error: 'Unauthorized access'});
+    }
+
+    if (loadDoc.status !== 'NEW') {
+      return res.status(500).json({error: `Can't delete load in progress`});
+    }
+
+    await loadDoc.deleteOne({id});
+
+    return res.status(200).json({message: 'Load has been deleted'});
   } catch (err) {
     // console.log(err);
 

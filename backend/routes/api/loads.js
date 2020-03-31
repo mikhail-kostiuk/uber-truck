@@ -69,4 +69,50 @@ router.get('/', async (req, res) => {
   }
 });
 
+router.put('/:id', async (req, res) => {
+  // console.log(req);
+
+  try {
+    const {error} = await schemas.update.validateAsync(req.body);
+
+    if (error) {
+      return res.status(400).json({error: error.details[0].message});
+    }
+
+    const {user} = req;
+    const id = req.params.id;
+    const {name, width, length, height, payload} = req.body;
+
+    if (!user || user.role !== 'Shipper') {
+      return res.status(403).json({error: 'Unauthorized access'});
+    }
+
+    const loadDoc = await Load.findById(id);
+
+    if (!loadDoc) {
+      return res.status(500).json({error: 'Load not found'});
+    }
+
+    if (loadDoc.createdBy !== user.id) {
+      return res.status(403).json({error: 'Unauthorized access'});
+    }
+
+    if (loadDoc.status !== 'NEW') {
+      return res.status(500).json({error: `Can't modify load in progress`});
+    }
+
+    await loadDoc.updateOne({
+      name,
+      dimensions: {width, length, height},
+      payload,
+    });
+
+    return res.status(200).json({message: 'Load has been updated'});
+  } catch (err) {
+    // console.log(err);
+
+    return res.status(500).json({error: err.message});
+  }
+});
+
 module.exports = router;

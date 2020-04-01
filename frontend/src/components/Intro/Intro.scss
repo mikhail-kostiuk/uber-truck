@@ -1,0 +1,16 @@
+.intro {
+  max-width: 460px;
+  padding: 50px;
+  background-color: #fff;
+  color: #000;
+  transition: all 2s;
+
+  &__title {
+    font-size: 44px;
+  }
+
+  &__text {
+    margin-top: 40px;
+    font-size: 16px;
+  }
+}

@@ -6,6 +6,7 @@ import store from './store';
 import setAuthToken from './utils/setAuthToken';
 import * as actionTypes from './actions/actionTypes';
 import PrivateRoute from './routes/PrivateRoute/PrivateRoute';
+import Home from './routes/Home/Home';
 import Register from './routes/Register/Register';
 import Login from './routes/Login/Login';
 
@@ -24,6 +25,7 @@ function App() {
   return (
     <Provider store={store}>
       <BrowserRouter>
+        <Route exact path="/" component={Home} />
         <Route exact path="/register" component={Register} />
         <Route exact path="/login" component={Login} />
         <Switch>

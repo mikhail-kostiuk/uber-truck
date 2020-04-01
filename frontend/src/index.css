@@ -6,7 +6,13 @@
   margin: 0;
 }
 
+body {
+  color: #525f7f;
+  font-family: 'Muli', sans-serif;
+}
+
 .container {
-  max-width: 1200px;
+  max-width: 1240px;
+  padding: 0 20px;
   margin: 0 auto;
 }

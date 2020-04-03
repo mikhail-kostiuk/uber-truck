@@ -1,11 +1,10 @@
 .home {
   position: relative;
   height: 100vh;
-  // background-image: url('../../assets/images/truck.jpg');
+  background-image: url('../../assets/images/containers.jpeg');
   background-position: center;
   background-size: cover;
   animation-duration: 20s;
-  // animation-delay: 3s;
   animation-name: bgin;
   animation-iteration-count: infinite;
 
@@ -56,10 +55,6 @@
   from {
     opacity: 0;
   }
-
-  // 10% {
-  //   opacity: 0;
-  // }
 
   40% {
     opacity: 0;

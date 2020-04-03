@@ -41,17 +41,19 @@ router.post('/register', async (req, res) => {
         createdUserDoc = await Shipper.add(name, email, password);
       }
 
-      return res.status(200).json(createdUserDoc);
+      const token = createJwtToken(createdUserDoc, role);
+
+      return res.status(200).json({token});
     }
   } catch (err) {
-    // console.log(err);
+    console.log(err);
 
     return res.status(500).json({error: err.message});
   }
 });
 
 router.post('/login', async (req, res) => {
-  // console.log(req);
+  console.log(req.body);
 
   try {
     const {error} = await schemas.login.validateAsync(req.body);
@@ -82,8 +84,6 @@ router.post('/login', async (req, res) => {
 
     return res.status(200).json({token});
   } catch (err) {
-    // console.log(err);
-
     return res.status(500).json({error: err.message});
   }
 });
@@ -116,7 +116,7 @@ router.get('/me', async (req, res) => {
       });
     }
   } catch (err) {
-    // console.log(err);
+    console.log(err);
 
     return res.status(500).json({error: err.message});
   }
@@ -159,40 +159,38 @@ router.post('/password', async (req, res) => {
 
     return res.status(200).json({message: 'Password has been changed'});
   } catch (err) {
-    // console.log(err);
+    console.log(err);
 
     return res.status(500).json({error: err.message});
   }
 });
 
-router.delete('/', async (req, res) => {
+router.delete('/:id', async (req, res) => {
   // console.log(req);
 
+  const {user} = req;
+  const id = req.params.id;
+
   try {
-    const {error} = await schemas.delete.validateAsync(req.body);
-
-    if (error) {
-      return res.status(400).json({error: error.details[0].message});
-    }
-
-    const {user} = req;
-    const {password} = req.body;
-
-    if (user.role !== 'Shipper') {
+    if (!user) {
       return res.status(403).json({error: 'Unauthorized access'});
     }
 
-    const shipperDoc = await Shipper.findById(user.id);
-
-    if (!(await shipperDoc.verifyPassword(password))) {
-      return res.status(400).json({error: `Wrong password`});
+    if (user.role !== 'Shipper' || user.id !== id) {
+      return res.status(403).json({error: 'Unauthorized access'});
     }
 
-    await shipperDoc.deleteOne({id: user.id});
+    const shipperDoc = await Shipper.findById(id);
+
+    if (!shipperDoc) {
+      return res.status(500).json({error: 'Shipper not found'});
+    }
+
+    if (shipperDoc.id) await shipperDoc.deleteOne({id: user.id});
 
     return res.status(200).json({message: 'Account has been deleted'});
   } catch (err) {
-    // console.log(err);
+    console.log(err);
 
     return res.status(500).json({error: err.message});
   }

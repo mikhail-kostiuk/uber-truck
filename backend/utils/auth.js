@@ -11,7 +11,7 @@ function createJwtToken(user, role) {
 
 function getUser(req) {
   if (req.headers['authorization']) {
-    const [, token] = req.headers['authorization'].split(' ');
+    const token = req.headers['authorization'];
 
     const user = jwt.verify(token, config.get('secret'));
 

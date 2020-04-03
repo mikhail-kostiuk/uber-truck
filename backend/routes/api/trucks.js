@@ -163,7 +163,9 @@ router.delete('/:id', async (req, res) => {
   const {user} = req;
   const id = req.params.id;
 
-  if (!user || user.role !== 'Driver') {
+  if (!user) {
+    return res.status(403).json({error: 'Unauthorized access'});
+  } else if (user.role !== 'Shipper') {
     return res.status(403).json({error: 'Unauthorized access'});
   }
 

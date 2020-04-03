@@ -1,8 +1,9 @@
 import React from 'react';
+import './Button.scss';
 
-function Button() {
+function Button(props) {
   return (
-    <button className="link-button" onClick={props.onClick}>
+    <button className="button" type={props.type}>
       {props.text}
     </button>
   );

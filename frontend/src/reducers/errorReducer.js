@@ -1,6 +1,6 @@
 import * as actionTypes from '../actions/actionTypes';
 
-const initialState = {};
+const initialState = null;
 
 const errorReducer = (state = initialState, action) => {
   switch (action.type) {
@@ -8,7 +8,7 @@ const errorReducer = (state = initialState, action) => {
       return action.payload;
     }
     case actionTypes.CLEAR_ERRORS: {
-      return {};
+      return null;
     }
     default:
       return state;

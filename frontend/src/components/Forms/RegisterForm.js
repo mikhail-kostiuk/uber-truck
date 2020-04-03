@@ -3,7 +3,7 @@ import {useSelector, useDispatch} from 'react-redux';
 import {useFormik} from 'formik';
 import Button from '../Buttons/Button/Button';
 import {registerUser} from '../../actions/authActions';
-import {clearErrors} from '../../actions/errorActions';
+import {clearError} from '../../actions/errorActions';
 
 function RegisterForm(props) {
   const error = useSelector((state) => state.error);
@@ -11,7 +11,7 @@ function RegisterForm(props) {
 
   useEffect(() => {
     return () => {
-      dispatch(clearErrors());
+      dispatch(clearError());
     };
   }, [dispatch]);
 

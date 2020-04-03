@@ -7,7 +7,7 @@ const errorReducer = (state = initialState, action) => {
     case actionTypes.SET_ERROR: {
       return action.payload;
     }
-    case actionTypes.CLEAR_ERRORS: {
+    case actionTypes.CLEAR_ERROR: {
       return null;
     }
     default:

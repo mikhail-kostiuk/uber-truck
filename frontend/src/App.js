@@ -15,6 +15,7 @@ function App() {
     setAuthToken(localStorage.jwtToken);
 
     const decodedUserData = jwtDecode(localStorage.jwtToken);
+    console.log('app');
 
     store.dispatch({
       type: actionTypes.SET_CURRENT_USER,

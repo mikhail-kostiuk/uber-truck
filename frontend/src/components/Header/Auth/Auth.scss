@@ -1,0 +1,18 @@
+.auth {
+  &__list {
+    display: flex;
+    list-style-type: none;
+  }
+
+  &__item {
+    margin-left: 20px;
+  }
+
+  &__link {
+    white-space: nowrap;
+    color: #fff;
+    font-size: 17px;
+    line-height: 17px;
+    text-decoration: none;
+  }
+}

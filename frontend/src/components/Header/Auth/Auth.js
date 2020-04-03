@@ -1,43 +1,56 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
-import {connect} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
+import {logoutUser, deleteUser} from '../../../actions/authActions';
 import './Auth.scss';
+import LinkButton from '../../Buttons/LinkButton/LinkButton';
 
-function Auth(props) {
-  const {
-    auth,
-    auth: {user},
-  } = props;
-  console.log(auth);
+function Auth() {
+  const {isAuthenticated} = useSelector((state) => state.auth);
+  const {user} = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
 
-  const items = auth.isAuthenticated
-    ? [
-        {path: 'delete-account', text: 'Delete account'},
-        {path: 'log', text: 'Delete account'},
-      ]
-    : ['register', 'login'];
-
-  console.log(items);
   return (
     <div className="auth">
       <ul className="auth__list">
-        {items &&
-          items.map((item) => (
-            <li className="auth__item" key={item}>
-              <Link to={`/${item}`}>
-                {() => item.charAt(0).toUpperCase() + this.slice(1)}
+        {isAuthenticated ? (
+          <>
+            {user.role === 'Shipper' && (
+              <li className="auth__item">
+                <LinkButton
+                  text="Delete account"
+                  onClick={() => {
+                    dispatch(deleteUser(user.id));
+                  }}
+                />
+              </li>
+            )}
+            <li className="auth__item">
+              <LinkButton
+                text="Logout"
+                onClick={() => {
+                  dispatch(logoutUser());
+                }}
+              />
+            </li>
+          </>
+        ) : (
+          <>
+            <li className="auth__item">
+              <Link className="auth__link" to={`/register`}>
+                Register
               </Link>
             </li>
-          ))}
+            <li className="auth__item">
+              <Link className="auth__link" to={`/login`}>
+                Sign In
+              </Link>
+            </li>
+          </>
+        )}
       </ul>
     </div>
   );
 }
 
-const mapStateToProps = (state) => {
-  return {
-    auth: state.auth,
-  };
-};
-
-export default connect(mapStateToProps)(Auth);
+export default Auth;

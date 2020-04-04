@@ -1,7 +1,9 @@
+@import '../../../styles/base/variables';
+
 .link-button {
   white-space: nowrap;
   border: none;
-  background-color: #000;
+  background-color: $color-primary;
   color: #fff;
   font-size: 17px;
   line-height: 17px;

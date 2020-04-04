@@ -1,5 +1,7 @@
+@import '../../styles/base/variables';
+
 .header {
-  background-color: #000;
+  background-color: $color-primary;
 
   &__container {
     display: flex;

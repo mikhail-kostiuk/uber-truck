@@ -1,8 +1,10 @@
+@import '../../styles/base/variables';
+
 .intro {
   max-width: 460px;
   padding: 50px;
   background-color: #fff;
-  color: #000;
+  color: $color-primary;
   transition: all 2s;
 
   &__title {

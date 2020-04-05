@@ -11,4 +11,8 @@
   text-transform: uppercase;
   letter-spacing: 1px;
   cursor: pointer;
+
+  &--danger {
+    background-color: #f00;
+  }
 }

@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const schema = require('./schemas/Load');
+const Truck = require('./Truck');
 class Load {
   static async createLoad(name, shipperId, width, length, height, payload) {
     console.log('class', name);
@@ -22,7 +23,53 @@ class Load {
   }
 
   async post() {
-    return await this.updateOne({status: 'POSTED'});
+    await this.updateOne({status: 'POSTED'});
+
+    const truck = await this.findTruck();
+
+    if (!truck) {
+      await this.updateOne({status: 'NEW'});
+      return null;
+    }
+
+    const logs = this.logs;
+    logs.push({message: 'En route to Pick Up', time: Date.now()});
+
+    await this.updateOne({
+      status: 'ASSIGNED',
+      state: 'En route to Pick Up',
+      logs,
+      assignedTo: truck.createdBy,
+    });
+
+    return true;
+  }
+
+  async findTruck() {
+    console.log('object');
+    const trucks = await Truck.find({status: 'IS'});
+
+    console.log(trucks);
+    if (trucks.length === 0) {
+      return null;
+    }
+
+    for (const truck of trucks) {
+      if (this.fitLoad(truck)) {
+        return truck;
+      }
+    }
+
+    return null;
+  }
+
+  async fitLoad(truck) {
+    return (
+      this.payload < truck.payload &&
+      this.dimensions.width < truck.dimensions.width &&
+      this.dimensions.height < truck.dimensions.height &&
+      this.dimensions.length < truck.dimensions.length
+    );
   }
 }
 

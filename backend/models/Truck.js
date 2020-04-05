@@ -6,7 +6,7 @@ class Truck {
     return await this.create({
       name,
       createdBy: driverId,
-      status: 'IS',
+      status: 'NIS',
       type,
       capacity: getTruckCapacity(type),
     });
@@ -17,9 +17,12 @@ class Truck {
   }
 
   async assignTo(driverId) {
-    await this.findOneAndUpdate({assignedTo: driverId}, {assignedTo: null});
+    await this.findOneAndUpdate(
+      {assignedTo: driverId},
+      {assignedTo: null, status: 'NIS'},
+    );
 
-    return await this.updateOne({assignedTo: driverId});
+    return await this.updateOne({assignedTo: driverId, status: 'IS'});
   }
 }
 

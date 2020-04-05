@@ -169,7 +169,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 router.patch('/:id', async (req, res) => {
-  console.log(req);
+  // console.log(req);
 
   const {user} = req;
   const id = req.params.id;
@@ -195,13 +195,15 @@ router.patch('/:id', async (req, res) => {
       return res.status(403).json({error: 'Unauthorized access'});
     }
 
-    if (loadDoc.status !== 'NEW') {
-      return res.status(500).json({error: `Can't post load in progress`});
+    // if (loadDoc.status !== 'NEW') {
+    //   return res.status(500).json({error: `Can't post load in progress`});
+    // }
+
+    if (await loadDoc.post()) {
+      res.status(200).json({message: 'Load has been assigned to driver'});
     }
 
-    await loadDoc.post();
-
-    return res.status(200).json({message: 'Load has been posted'});
+    return res.status(200).json({message: 'No available trucks'});
   } catch (err) {
     console.log(err);
 

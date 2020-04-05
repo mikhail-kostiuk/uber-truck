@@ -9,6 +9,7 @@ import PrivateRoute from './routes/PrivateRoute/PrivateRoute';
 import Home from './routes/Home/Home';
 import Register from './routes/Register/Register';
 import Login from './routes/Login/Login';
+import Settings from './routes/Settings/Settings';
 
 function App() {
   if (localStorage.jwtToken) {
@@ -29,6 +30,7 @@ function App() {
         <Route exact path="/" component={Home} />
         <Route exact path="/register" component={Register} />
         <Route exact path="/login" component={Login} />
+        <Route exact path="/settings" component={Settings} />
         <Switch>
           {/* <PrivateRoute exact path="/trucks" component={Trucks} /> */}
         </Switch>

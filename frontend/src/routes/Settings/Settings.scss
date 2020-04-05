@@ -1,0 +1,20 @@
+.settings {
+  height: 100vh;
+  background-color: #f6f9fc;
+
+  &__form {
+    width: 450px;
+    margin: 0 auto;
+    margin-top: 10vh;
+  }
+
+  &__delete {
+    width: 450px;
+    padding: 50px;
+    margin: 0 auto;
+    margin-top: 40px;
+    background-color: #fff;
+    box-shadow: rgba(60, 66, 87, 0.32) 0px 7px 14px 0px,
+      rgba(0, 0, 0, 0.32) 0px 3px 6px 0px;
+  }
+}

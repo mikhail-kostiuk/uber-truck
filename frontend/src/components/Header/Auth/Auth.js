@@ -15,16 +15,11 @@ function Auth() {
       <ul className="auth__list">
         {isAuthenticated ? (
           <>
-            {user.role === 'Shipper' && (
-              <li className="auth__item">
-                <LinkButton
-                  text="Delete account"
-                  onClick={() => {
-                    dispatch(deleteUser(user.id));
-                  }}
-                />
-              </li>
-            )}
+            <li className="auth__item">
+              <Link className="auth__link" to={`/settings`}>
+                Settings
+              </Link>
+            </li>
             <li className="auth__item">
               <LinkButton
                 text="Logout"

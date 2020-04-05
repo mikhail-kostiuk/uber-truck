@@ -3,10 +3,10 @@ import jwtDecode from 'jwt-decode';
 import setAuthToken from '../utils/setAuthToken';
 import * as actionTypes from './actionTypes';
 
-export const registerUser = (userData, history) => {
+export const registerUser = (data, history) => {
   return (dispatch) => {
     axios
-      .post('/api/users/register', userData)
+      .post('/api/users/register', data)
       .then((res) => {
         const {token} = res.data;
 
@@ -21,10 +21,10 @@ export const registerUser = (userData, history) => {
   };
 };
 
-export const loginUser = (userData, history) => {
+export const loginUser = (data, history) => {
   return (dispatch) => {
     axios
-      .post('/api/users/login', userData)
+      .post('/api/users/login', data)
       .then((res) => {
         const {token} = res.data;
 
@@ -42,6 +42,22 @@ export const loginUser = (userData, history) => {
 export const logoutUser = () => {
   return (dispatch) => {
     logout(dispatch);
+  };
+};
+
+export const changePassword = (data) => {
+  return (dispatch) => {
+    axios
+      .put('/api/users/password', data)
+      .then((res) => {
+        logout(dispatch);
+      })
+      .catch((err) => {
+        return dispatch({
+          type: actionTypes.SET_ERROR,
+          payload: err.response.data.error,
+        });
+      });
   };
 };
 

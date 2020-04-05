@@ -7,7 +7,7 @@ const schemas = require('../../joi/users');
 const router = new express.Router();
 
 router.post('/register', async (req, res) => {
-  // console.log(req);
+  console.log(req);
 
   try {
     const {error} = await schemas.register.validateAsync(req.body);
@@ -36,9 +36,9 @@ router.post('/register', async (req, res) => {
       let createdUserDoc = null;
 
       if (role === 'Driver') {
-        createdUserDoc = await Driver.add(name, email, password);
+        createdUserDoc = await Driver.createDriver(name, email, password);
       } else {
-        createdUserDoc = await Shipper.add(name, email, password);
+        createdUserDoc = await Shipper.createShipper(name, email, password);
       }
 
       const token = createJwtToken(createdUserDoc, role);
@@ -89,7 +89,7 @@ router.post('/login', async (req, res) => {
 });
 
 router.get('/me', async (req, res) => {
-  // console.log(req);
+  console.log(req);
 
   const {user} = req;
 
@@ -122,8 +122,8 @@ router.get('/me', async (req, res) => {
   }
 });
 
-router.post('/password', async (req, res) => {
-  // console.log(req);
+router.put('/password', async (req, res) => {
+  console.log(req);
 
   try {
     const {error} = await schemas.changePassword.validateAsync(req.body);
@@ -166,7 +166,7 @@ router.post('/password', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
-  // console.log(req);
+  console.log(req);
 
   const {user} = req;
   const id = req.params.id;

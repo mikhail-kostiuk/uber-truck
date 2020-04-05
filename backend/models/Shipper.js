@@ -1,26 +1,9 @@
 const mongoose = require('mongoose');
+const schema = require('./schemas/Shipper');
 const Load = require('./Load');
 const {encryptPassword, comparePasswords} = require('../utils/password');
-
-const {Schema} = mongoose;
-
-const shipperSchema = new Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  email: {
-    type: String,
-    required: true,
-  },
-  password: {
-    type: String,
-    required: true,
-  },
-});
-
-class ShipperClass {
-  static async add(name, email, password) {
+class Shipper {
+  static async createShipper(name, email, password) {
     const encryptedPassword = await encryptPassword(password);
 
     return await this.create({name, email, password: encryptedPassword});
@@ -45,6 +28,6 @@ class ShipperClass {
   }
 }
 
-shipperSchema.loadClass(ShipperClass);
+schema.loadClass(Shipper);
 
-module.exports = mongoose.model('Shipper', shipperSchema);
+module.exports = mongoose.model('Shipper', schema);

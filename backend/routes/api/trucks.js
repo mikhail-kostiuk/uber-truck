@@ -6,7 +6,7 @@ const schemas = require('../../joi/trucks');
 const router = new express.Router();
 
 router.post('/', async (req, res) => {
-  // console.log(req);
+  console.log(req);
 
   try {
     const {error} = await schemas.add.validateAsync(req.body);
@@ -34,18 +34,18 @@ router.post('/', async (req, res) => {
       return res.status(500).json({error: 'Truck name already exists'});
     }
 
-    const createdTruckDoc = await Truck.add(name, user.id, type);
+    const createdTruckDoc = await Truck.createTruck(name, user.id, type);
 
     return res.status(200).json(createdTruckDoc);
   } catch (err) {
-    // console.log(err);
+    console.log(err);
 
     return res.status(500).json({error: err.message});
   }
 });
 
 router.get('/', async (req, res) => {
-  // console.log(req);
+  console.log(req);
 
   const {user} = req;
 
@@ -69,7 +69,7 @@ router.get('/', async (req, res) => {
 });
 
 router.patch('/:truckId', async (req, res) => {
-  // console.log(req);
+  console.log(req);
 
   const {user} = req;
   const truckId = req.params.truckId;
@@ -103,14 +103,14 @@ router.patch('/:truckId', async (req, res) => {
 
     return res.status(200).json({message: 'Truck has been assigned'});
   } catch (err) {
-    // console.log(err);
+    console.log(err);
 
     return res.status(500).json({error: err.message});
   }
 });
 
 router.put('/:id', async (req, res) => {
-  // console.log(req);
+  console.log(req);
 
   try {
     const {error} = await schemas.update.validateAsync(req.body);
@@ -151,14 +151,14 @@ router.put('/:id', async (req, res) => {
 
     return res.status(200).json({message: 'Truck has been updated'});
   } catch (err) {
-    // console.log(err);
+    console.log(err);
 
     return res.status(500).json({error: err.message});
   }
 });
 
 router.delete('/:id', async (req, res) => {
-  // console.log(req);
+  console.log(req);
 
   const {user} = req;
   const id = req.params.id;
@@ -194,7 +194,7 @@ router.delete('/:id', async (req, res) => {
 
     return res.status(200).json({message: 'Truck has been deleted'});
   } catch (err) {
-    // console.log(err);
+    console.log(err);
 
     return res.status(500).json({error: err.message});
   }

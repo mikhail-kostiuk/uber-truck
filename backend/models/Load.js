@@ -1,60 +1,7 @@
 const mongoose = require('mongoose');
-
-const {Schema} = mongoose;
-
-const loadSchema = new Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  createdBy: {
-    type: String,
-    required: true,
-  },
-  logs: [
-    {
-      message: {
-        type: String,
-        required: true,
-      },
-      time: {
-        type: Number,
-        required: true,
-      },
-    },
-  ],
-  assignedTo: {
-    type: String,
-  },
-  status: {
-    type: String,
-    required: true,
-  },
-  state: {
-    type: String,
-  },
-  dimensions: {
-    width: {
-      type: Number,
-      required: true,
-    },
-    length: {
-      type: Number,
-      required: true,
-    },
-    height: {
-      type: Number,
-      required: true,
-    },
-  },
-  payload: {
-    type: Number,
-    required: true,
-  },
-});
-
-class LoadClass {
-  static async add(name, shipperId, width, length, height, payload) {
+const schema = require('./schemas/Load');
+class Load {
+  static async createLoad(name, shipperId, width, length, height, payload) {
     console.log('class', name);
     return await this.create({
       name,
@@ -79,6 +26,6 @@ class LoadClass {
   }
 }
 
-loadSchema.loadClass(LoadClass);
+schema.loadClass(Load);
 
-module.exports = mongoose.model('Load', loadSchema);
+module.exports = mongoose.model('Load', schema);

@@ -6,7 +6,7 @@ const schemas = require('../../joi/loads');
 const router = new express.Router();
 
 router.post('/', async (req, res) => {
-  // console.log(req);
+  console.log(req);
 
   try {
     const {error} = await schemas.add.validateAsync(req.body);
@@ -34,7 +34,7 @@ router.post('/', async (req, res) => {
       return res.status(500).json({error: 'Load name already exists'});
     }
 
-    const createdLoadDoc = await Load.add(
+    const createdLoadDoc = await Load.createLoad(
       name,
       user.id,
       width,
@@ -45,14 +45,14 @@ router.post('/', async (req, res) => {
 
     return res.status(200).json(createdLoadDoc);
   } catch (err) {
-    // console.log(err);
+    console.log(err);
 
     return res.status(500).json({error: err.message});
   }
 });
 
 router.get('/', async (req, res) => {
-  // console.log(req);
+  console.log(req);
 
   const {user} = req;
 
@@ -76,7 +76,7 @@ router.get('/', async (req, res) => {
 });
 
 router.put('/:id', async (req, res) => {
-  // console.log(req);
+  console.log(req);
 
   try {
     const {error} = await schemas.update.validateAsync(req.body);
@@ -121,14 +121,14 @@ router.put('/:id', async (req, res) => {
 
     return res.status(200).json({message: 'Load has been updated'});
   } catch (err) {
-    // console.log(err);
+    console.log(err);
 
     return res.status(500).json({error: err.message});
   }
 });
 
 router.delete('/:id', async (req, res) => {
-  // console.log(req);
+  console.log(req);
 
   const {user} = req;
   const id = req.params.id;
@@ -162,14 +162,14 @@ router.delete('/:id', async (req, res) => {
 
     return res.status(200).json({message: 'Load has been deleted'});
   } catch (err) {
-    // console.log(err);
+    console.log(err);
 
     return res.status(500).json({error: err.message});
   }
 });
 
 router.patch('/:id', async (req, res) => {
-  // console.log(req);
+  console.log(req);
 
   const {user} = req;
   const id = req.params.id;
@@ -203,7 +203,7 @@ router.patch('/:id', async (req, res) => {
 
     return res.status(200).json({message: 'Load has been posted'});
   } catch (err) {
-    // console.log(err);
+    console.log(err);
 
     return res.status(500).json({error: err.message});
   }

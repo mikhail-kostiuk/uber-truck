@@ -1,36 +1,14 @@
 const mongoose = require('mongoose');
-
-const {Schema} = mongoose;
-
-const truckSchema = new Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  createdBy: {
-    type: String,
-    required: true,
-  },
-  assignedTo: {
-    type: String,
-  },
-  status: {
-    type: String,
-    required: true,
-  },
-  type: {
-    type: String,
-    required: true,
-  },
-});
-
-class TruckClass {
-  static async add(name, driverId, type) {
+const schema = require('./schemas/Truck');
+const {getTruckCapacity} = require('../utils/truck');
+class Truck {
+  static async createTruck(name, driverId, type) {
     return await this.create({
       name,
       createdBy: driverId,
       status: 'IS',
       type,
+      capacity: getTruckCapacity(type),
     });
   }
 
@@ -45,6 +23,6 @@ class TruckClass {
   }
 }
 
-truckSchema.loadClass(TruckClass);
+schema.loadClass(Truck);
 
-module.exports = mongoose.model('Truck', truckSchema);
+module.exports = mongoose.model('Truck', schema);

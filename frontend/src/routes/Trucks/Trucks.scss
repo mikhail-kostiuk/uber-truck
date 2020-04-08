@@ -1,0 +1,36 @@
+@import '../../styles/base/variables';
+
+.trucks {
+  &__title {
+    margin-top: 40px;
+    text-align: center;
+  }
+  &__list {
+    margin-top: 40px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    list-style-type: none;
+  }
+
+  &__item {
+    width: 48%;
+  }
+
+  &__link {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    height: 44px;
+    padding: 0 30px;
+    border: none;
+    margin-top: 20px;
+    background-color: $color-primary;
+    color: #fff;
+    font-size: 15px;
+    text-transform: uppercase;
+    text-decoration: none;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+}

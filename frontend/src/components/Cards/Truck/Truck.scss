@@ -1,0 +1,34 @@
+.truck {
+  width: 100%;
+  padding: 50px;
+  background-color: #fff;
+  box-shadow: rgba(60, 66, 87, 0.32) 0px 7px 14px 0px,
+    rgba(0, 0, 0, 0.32) 0px 3px 6px 0px;
+
+  &__property {
+    display: flex;
+    padding-bottom: 4px;
+    margin-top: 8px;
+    border-bottom: 2px solid #d3d3d3;
+
+    &:first-child {
+      margin-top: 0;
+    }
+
+    &--nested {
+      padding-left: 20px;
+    }
+  }
+
+  &__label {
+    display: block;
+    min-width: 140px;
+    font-weight: 700;
+  }
+
+  &__text {
+    &--nested {
+      margin-left: -20px;
+    }
+  }
+}

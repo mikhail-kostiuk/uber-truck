@@ -1,12 +1,12 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
-import {connect} from 'react-redux';
+import {useSelector} from 'react-redux';
 import './Nav.scss';
 
 function Nav(props) {
-  const {user} = props.auth;
+  const {user} = useSelector((state) => state.auth);
 
-  const items = user.role === 'Driver' ? ['trucks', 'loads'] : ['loads'];
+  const items = user.role === 'Driver' ? ['Trucks', 'Loads'] : ['Loads'];
 
   return (
     <nav className="nav">
@@ -14,8 +14,8 @@ function Nav(props) {
         {items &&
           items.map((item) => (
             <li className="nav__item" key={item}>
-              <Link to={`/${item}`}>
-                {() => item.charAt(0).toUpperCase() + this.slice(1)}
+              <Link className="nav__link" to={`/${item.toLowerCase()}`}>
+                {item}
               </Link>
             </li>
           ))}
@@ -24,10 +24,4 @@ function Nav(props) {
   );
 }
 
-const mapStateToProps = (state) => {
-  return {
-    auth: state.auth,
-  };
-};
-
-export default connect(mapStateToProps)(Nav);
+export default Nav;

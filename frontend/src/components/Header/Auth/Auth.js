@@ -1,13 +1,12 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
 import {useSelector, useDispatch} from 'react-redux';
-import {logoutUser, deleteUser} from '../../../actions/authActions';
+import {logoutUser} from '../../../actions/authActions';
 import './Auth.scss';
 import LinkButton from '../../Buttons/LinkButton/LinkButton';
 
 function Auth() {
   const {isAuthenticated} = useSelector((state) => state.auth);
-  const {user} = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
   return (

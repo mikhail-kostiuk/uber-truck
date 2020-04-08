@@ -2,19 +2,14 @@ const express = require('express');
 const Driver = require('../../models/Driver');
 const Truck = require('../../models/Truck');
 const schemas = require('../../joi/trucks');
+const {validateReq} = require('../middleware/validation');
 
 const router = new express.Router();
 
-router.post('/', async (req, res) => {
+router.post('/', validateReq(schemas.create, 'body'), async (req, res) => {
   console.log(req);
 
   try {
-    const {error} = await schemas.add.validateAsync(req.body);
-
-    if (error) {
-      return res.status(400).json({error: error.details[0].message});
-    }
-
     const {user} = req;
     const {name, type} = req.body;
 
@@ -109,16 +104,10 @@ router.patch('/:truckId', async (req, res) => {
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', validateReq(schemas.update, 'body'), async (req, res) => {
   console.log(req);
 
   try {
-    const {error} = await schemas.update.validateAsync(req.body);
-
-    if (error) {
-      return res.status(400).json({error: error.details[0].message});
-    }
-
     const {user} = req;
     const id = req.params.id;
     const {name, status, type} = req.body;
@@ -163,9 +152,7 @@ router.delete('/:id', async (req, res) => {
   const {user} = req;
   const id = req.params.id;
 
-  if (!user) {
-    return res.status(403).json({error: 'Unauthorized access'});
-  } else if (user.role !== 'Shipper') {
+  if (!user || user.role !== 'Driver') {
     return res.status(403).json({error: 'Unauthorized access'});
   }
 

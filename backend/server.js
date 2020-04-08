@@ -6,6 +6,7 @@ const auth = require('./routes/middleware/auth');
 const users = require('./routes/api/users');
 const trucks = require('./routes/api/trucks');
 const loads = require('./routes/api/loads');
+const drivers = require('./routes/api/drivers');
 
 const PORT = process.env.PORT || 5050;
 
@@ -17,6 +18,7 @@ app.use(auth);
 app.use('/api/users', users);
 app.use('/api/trucks', trucks);
 app.use('/api/loads', loads);
+app.use('/api/drivers', drivers);
 
 start();
 

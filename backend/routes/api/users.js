@@ -3,65 +3,58 @@ const Driver = require('../../models/Driver');
 const Shipper = require('../../models/Shipper');
 const {createJwtToken} = require('../../utils/auth');
 const schemas = require('../../joi/users');
+const {validateReq} = require('../middleware/validation');
 
 const router = new express.Router();
 
-router.post('/register', async (req, res) => {
-  console.log(req);
+router.post(
+  '/register',
+  validateReq(schemas.register, 'body'),
+  async (req, res) => {
+    console.log(req);
 
-  try {
-    const {error} = await schemas.register.validateAsync(req.body);
+    try {
+      const {name, email, password, confirmPassword, role} = req.body;
 
-    if (error) {
-      return res.status(400).json({error: error.details[0].message});
-    }
-
-    const {name, email, password, confirmPassword, role} = req.body;
-
-    if (password !== confirmPassword) {
-      return res.status(400).json({error: `Passwords don't match`});
-    }
-
-    let userDoc = null;
-
-    if (role === 'Driver') {
-      userDoc = await Driver.findByEmail(email);
-    } else {
-      userDoc = await Shipper.findByEmail(email);
-    }
-
-    if (userDoc) {
-      return res.status(400).json({error: 'User already exists'});
-    } else {
-      let createdUserDoc = null;
-
-      if (role === 'Driver') {
-        createdUserDoc = await Driver.createDriver(name, email, password);
-      } else {
-        createdUserDoc = await Shipper.createShipper(name, email, password);
+      if (password !== confirmPassword) {
+        return res.status(400).json({error: `Passwords don't match`});
       }
 
-      const token = createJwtToken(createdUserDoc, role);
+      let userDoc = null;
 
-      return res.status(200).json({token});
+      if (role === 'Driver') {
+        userDoc = await Driver.findByEmail(email);
+      } else {
+        userDoc = await Shipper.findByEmail(email);
+      }
+
+      if (userDoc) {
+        return res.status(400).json({error: 'User already exists'});
+      } else {
+        let createdUserDoc = null;
+
+        if (role === 'Driver') {
+          createdUserDoc = await Driver.createDriver(name, email, password);
+        } else {
+          createdUserDoc = await Shipper.createShipper(name, email, password);
+        }
+
+        const token = createJwtToken(createdUserDoc, role);
+
+        return res.status(200).json({token});
+      }
+    } catch (err) {
+      console.log(err);
+
+      return res.status(500).json({error: err, message: err.message});
     }
-  } catch (err) {
-    console.log(err);
+  },
+);
 
-    return res.status(500).json({error: err.message});
-  }
-});
-
-router.post('/login', async (req, res) => {
+router.post('/login', validateReq(schemas.login, 'body'), async (req, res) => {
   console.log(req.body);
 
   try {
-    const {error} = await schemas.login.validateAsync(req.body);
-
-    if (error) {
-      return res.status(400).json({error: error.details[0].message});
-    }
-
     const {email, password, role} = req.body;
 
     let userDoc = null;
@@ -122,48 +115,50 @@ router.get('/me', async (req, res) => {
   }
 });
 
-router.put('/password', async (req, res) => {
-  console.log(req);
+router.put(
+  '/password',
+  validateReq(schemas.changePassword, 'body'),
+  async (req, res) => {
+    console.log(req);
 
-  try {
-    const {error} = await schemas.changePassword.validateAsync(req.body);
+    try {
+      if (error) {
+        return res.status(400).json({error: error.details[0].message});
+      }
 
-    if (error) {
-      return res.status(400).json({error: error.details[0].message});
+      const {user} = req;
+      const {password, newPassword, confirmNewPassword} = req.body;
+
+      if (!user) {
+        return res.status(403).json({error: 'Unauthorized access'});
+      }
+
+      if (newPassword !== confirmNewPassword) {
+        return res.status(400).json({error: `Passwords don't match`});
+      }
+
+      let userDoc = null;
+
+      if (user.role === 'Driver') {
+        userDoc = await Driver.findById(user.id);
+      } else {
+        userDoc = await Shipper.findById(user.id);
+      }
+
+      if (!(await userDoc.verifyPassword(password))) {
+        return res.status(400).json({error: `Wrong old password`});
+      }
+
+      await userDoc.changePassword(newPassword);
+
+      return res.status(200).json({message: 'Password has been changed'});
+    } catch (err) {
+      console.log(err);
+
+      return res.status(500).json({error: err.message});
     }
-
-    const {user} = req;
-    const {password, newPassword, confirmNewPassword} = req.body;
-
-    if (!user) {
-      return res.status(403).json({error: 'Unauthorized access'});
-    }
-
-    if (newPassword !== confirmNewPassword) {
-      return res.status(400).json({error: `Passwords don't match`});
-    }
-
-    let userDoc = null;
-
-    if (user.role === 'Driver') {
-      userDoc = await Driver.findById(user.id);
-    } else {
-      userDoc = await Shipper.findById(user.id);
-    }
-
-    if (!(await userDoc.verifyPassword(password))) {
-      return res.status(400).json({error: `Wrong old password`});
-    }
-
-    await userDoc.changePassword(newPassword);
-
-    return res.status(200).json({message: 'Password has been changed'});
-  } catch (err) {
-    console.log(err);
-
-    return res.status(500).json({error: err.message});
-  }
-});
+  },
+);
 
 router.delete('/:id', async (req, res) => {
   console.log(req);

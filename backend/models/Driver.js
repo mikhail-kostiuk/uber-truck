@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const schema = require('./schemas/Driver');
 const Truck = require('./Truck');
+const Load = require('./Load');
 const {encryptPassword, comparePasswords} = require('../utils/password');
 class Driver {
   static async createDriver(name, email, password) {
@@ -25,6 +26,10 @@ class Driver {
 
   async getCreatedTrucks() {
     return await Truck.find({createdBy: this.id});
+  }
+
+  async getAssignedLoads() {
+    return await Load.find({assignedTo: this.id});
   }
 }
 

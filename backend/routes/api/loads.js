@@ -1,20 +1,16 @@
 const express = require('express');
 const Load = require('../../models/Load');
+const Driver = require('../../models/Driver');
 const Shipper = require('../../models/Shipper');
 const schemas = require('../../joi/loads');
+const {validateReq} = require('../middleware/validation');
 
 const router = new express.Router();
 
-router.post('/', async (req, res) => {
+router.post('/', validateReq(schemas.create, 'body'), async (req, res) => {
   console.log(req);
 
   try {
-    const {error} = await schemas.add.validateAsync(req.body);
-
-    if (error) {
-      return res.status(400).json({error: error.details[0].message});
-    }
-
     const {user} = req;
     const {name, width, length, height, payload} = req.body;
 
@@ -56,35 +52,39 @@ router.get('/', async (req, res) => {
 
   const {user} = req;
 
-  if (!user || user.role !== 'Shipper') {
+  if (!user) {
     return res.status(403).json({error: 'Unauthorized access'});
   }
 
-  try {
-    const shipperDoc = await Shipper.findById(user.id);
+  let userDoc = null;
 
-    if (!shipperDoc) {
-      return res.status(500).json({error: 'Shipper not found'});
+  try {
+    if (user.role === 'Driver') {
+      userDoc = await Driver.findById(user.id);
+    } else {
+      userDoc = await Shipper.findById(user.id);
     }
 
-    const createdLoadsDocs = await shipperDoc.getCreatedLoads();
+    if (!userDoc) {
+      return res.status(500).json({error: 'User not found'});
+    }
 
-    return res.status(200).json(createdLoadsDocs);
+    if (user.role === 'Driver') {
+      const assignedLoadsDocs = await userDoc.getAssignedLoads();
+      return res.status(200).json(assignedLoadsDocs);
+    } else {
+      const createdLoadsDocs = await userDoc.getCreatedLoads();
+      return res.status(200).json(createdLoadsDocs);
+    }
   } catch (err) {
     return res.status(500).json({error: err.message});
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', validateReq(schemas.update, 'body'), async (req, res) => {
   console.log(req);
 
   try {
-    const {error} = await schemas.update.validateAsync(req.body);
-
-    if (error) {
-      return res.status(400).json({error: error.details[0].message});
-    }
-
     const {user} = req;
     const id = req.params.id;
     const {name, width, length, height, payload} = req.body;
@@ -169,7 +169,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 router.patch('/:id', async (req, res) => {
-  // console.log(req);
+  console.log(req);
 
   const {user} = req;
   const id = req.params.id;
@@ -195,9 +195,9 @@ router.patch('/:id', async (req, res) => {
       return res.status(403).json({error: 'Unauthorized access'});
     }
 
-    // if (loadDoc.status !== 'NEW') {
-    //   return res.status(500).json({error: `Can't post load in progress`});
-    // }
+    if (loadDoc.status !== 'NEW') {
+      return res.status(500).json({error: `Can't post load in progress`});
+    }
 
     if (await loadDoc.post()) {
       res.status(200).json({message: 'Load has been assigned to driver'});

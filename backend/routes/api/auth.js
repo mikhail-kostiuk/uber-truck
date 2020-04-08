@@ -58,6 +58,18 @@ router.post('/login', validateReq(schemas.login, 'body'), async (req, res) => {
   }
 });
 
+/**
+ * @api {get} /api/users/me Get user's profile
+ * @apiName GetUsersMe
+ * @apiGroup Users
+ *
+ * @apiSuccess {String} id User's id.
+ * @apiSuccess {String} username User's username.
+ * @apiSuccess {String} role User's role.
+ *
+ * @apiError (500 Internal Server Error) InternalServerError The server
+ *  encountered an internal error
+ */
 router.get('/me', async (req, res) => {
   console.log(req);
 
@@ -81,6 +93,16 @@ router.get('/me', async (req, res) => {
   }
 });
 
+/**
+ * @api {patch} /api/users/password Change user's password
+ * @apiName PatchUsersPassword
+ * @apiGroup Users
+ *
+ * @apiSuccess {String} status Operation status.
+ *
+ * @apiError (500 Internal Server Error) InternalServerError The server
+ *  encountered an internal error
+ */
 router.patch(
   '/password',
   validateReq(schemas.changePassword, 'body'),
@@ -120,6 +142,16 @@ router.patch(
   },
 );
 
+/**
+ * @api {delete} /api/users Delete user
+ * @apiName DeleteUsers
+ * @apiGroup Users
+ *
+ * @apiSuccess {String} status Operation status.
+ *
+ * @apiError (500 Internal Server Error) InternalServerError The server
+ *  encountered an internal error
+ */
 router.delete('/', async (req, res) => {
   console.log(req);
 

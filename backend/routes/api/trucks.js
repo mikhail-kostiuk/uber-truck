@@ -154,6 +154,18 @@ router.patch('/:id/assign', async (req, res) => {
   }
 });
 
+/**
+ * @api {patch} /api/trucks/:id/update Update truck's info
+ * @apiName PatchTrucksIdUpdate
+ * @apiGroup Trucks
+ *
+ * @apiParam {String} type Truck's type.
+ *
+ * @apiSuccess {String} status Operation status.
+ *
+ * @apiError (500 Internal Server Error) InternalServerError The server
+ *  encountered an internal error
+ */
 router.patch(
   '/:id/update',
   validateReq(schemas.update, 'body'),
@@ -204,6 +216,16 @@ router.patch(
   },
 );
 
+/**
+ * @api {delete} /api/trucks/:id Delete truck
+ * @apiName DeleteTrucksId
+ * @apiGroup Trucks
+ *
+ * @apiSuccess {String} status Operation status.
+ *
+ * @apiError (500 Internal Server Error) InternalServerError The server
+ *  encountered an internal error
+ */
 router.delete('/:id', async (req, res) => {
   console.log(req);
 

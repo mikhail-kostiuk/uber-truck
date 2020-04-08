@@ -3,10 +3,6 @@ const mongoose = require('mongoose');
 const {Schema} = mongoose;
 
 const Load = new Schema({
-  name: {
-    type: String,
-    required: true,
-  },
   createdBy: {
     type: String,
     required: true,
@@ -33,12 +29,16 @@ const Load = new Schema({
   state: {
     type: String,
   },
+  payload: {
+    type: Number,
+    required: true,
+  },
   dimensions: {
-    width: {
+    length: {
       type: Number,
       required: true,
     },
-    length: {
+    width: {
       type: Number,
       required: true,
     },
@@ -46,10 +46,6 @@ const Load = new Schema({
       type: Number,
       required: true,
     },
-  },
-  payload: {
-    type: Number,
-    required: true,
   },
 });
 

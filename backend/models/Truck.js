@@ -1,28 +1,19 @@
 const mongoose = require('mongoose');
 const schema = require('./schemas/Truck');
-const {getTruckCapacity} = require('../utils/truck');
 class Truck {
-  static async createTruck(name, driverId, type) {
+  static async createTruck(userId, type) {
     return await this.create({
-      name,
-      createdBy: driverId,
-      status: 'NIS',
+      createdBy: userId,
+      assignedTo: '',
+      status: 'IS',
       type,
-      capacity: getTruckCapacity(type),
     });
   }
 
-  static async findByName(name) {
-    return await this.findOne({name});
-  }
+  static async assignTo(truckId, userId) {
+    await this.findOneAndUpdate({assignedTo: userId}, {assignedTo: ''});
 
-  async assignTo(driverId) {
-    await this.findOneAndUpdate(
-      {assignedTo: driverId},
-      {assignedTo: null, status: 'NIS'},
-    );
-
-    return await this.updateOne({assignedTo: driverId, status: 'IS'});
+    return await this.findByIdAndUpdate(truckId, {assignedTo: userId});
   }
 }
 

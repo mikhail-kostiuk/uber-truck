@@ -1,5 +1,5 @@
 const express = require('express');
-const Driver = require('../../models/Driver');
+const User = require('../../models/User');
 const Truck = require('../../models/Truck');
 const schemas = require('../../joi/trucks');
 const {validateReq} = require('../middleware/validation');
@@ -11,27 +11,25 @@ router.post('/', validateReq(schemas.create, 'body'), async (req, res) => {
 
   try {
     const {user} = req;
-    const {name, type} = req.body;
+    const {type} = req.body;
 
-    if (!user || user.role !== 'Driver') {
-      return res.status(403).json({error: 'Unauthorized access'});
+    if (!user) {
+      return res.status(401).json({error: 'UnauthorizedAccess'});
     }
 
-    const driverDoc = await Driver.findById(user.id);
+    const userDoc = await User.findById(user.id);
 
-    if (!driverDoc) {
-      return res.status(500).json({error: 'Driver not found'});
+    if (!userDoc) {
+      return res.status(404).json({error: 'UserNotFound'});
     }
 
-    const truckDoc = await Truck.findByName(name);
-
-    if (truckDoc) {
-      return res.status(500).json({error: 'Truck name already exists'});
+    if (userDoc.role !== 'driver') {
+      return res.status(403).json({error: 'ForbiddenAction'});
     }
 
-    const createdTruckDoc = await Truck.createTruck(name, user.id, type);
+    await Truck.createTruck(user.id, type);
 
-    return res.status(200).json(createdTruckDoc);
+    return res.status(200).json({status: 'Truck created successfully'});
   } catch (err) {
     console.log(err);
 
@@ -44,59 +42,66 @@ router.get('/', async (req, res) => {
 
   const {user} = req;
 
-  if (!user || user.role !== 'Driver') {
-    return res.status(403).json({error: 'Unauthorized access'});
+  if (!user) {
+    return res.status(401).json({error: 'UnauthorizedAccess'});
   }
-
   try {
-    const driverDoc = await Driver.findById(user.id);
+    const userDoc = await User.findById(user.id);
 
-    if (!driverDoc) {
-      return res.status(500).json({error: 'Driver not found'});
+    if (!userDoc) {
+      return res.status(404).json({error: 'UserNotFound'});
     }
 
-    const createdTrucksDocs = await driverDoc.getCreatedTrucks();
+    if (userDoc.role !== 'driver') {
+      return res.status(401).json({error: 'UnauthorizedAccess'});
+    }
 
-    return res.status(200).json(createdTrucksDocs);
+    const trucks = await userDoc.getCreatedTrucks();
+
+    return res.status(200).json({status: 'Success', trucks});
   } catch (err) {
     return res.status(500).json({error: err.message});
   }
 });
 
-router.patch('/:truckId', async (req, res) => {
+router.patch('/:id/assign', async (req, res) => {
   console.log(req);
 
   const {user} = req;
-  const truckId = req.params.truckId;
+  const id = req.params.id;
 
-  if (!user || user.role !== 'Driver') {
-    return res.status(403).json({error: 'Unauthorized access'});
+  if (!user) {
+    return res.status(401).json({error: 'UnauthorizedAccess'});
   }
 
   try {
-    const driverDoc = await Driver.findById(user.id);
+    const userDoc = await User.findById(user.id);
 
-    if (!driverDoc) {
-      return res.status(500).json({error: 'Driver not found'});
+    if (!userDoc) {
+      return res.status(404).json({error: 'UserNotFound'});
     }
 
-    const truckDoc = await Truck.findById(truckId);
+    if (userDoc.role !== 'driver') {
+      return res.status(403).json({error: 'ForbiddenAction'});
+    }
+
+    const truckDoc = await Truck.findById(id);
 
     if (!truckDoc) {
-      return res.status(500).json({error: 'Truck not found'});
+      return res.status(404).json({error: 'TruckNotFound'});
     }
 
-    if (truckDoc.createdBy !== driverDoc.id) {
-      return res.status(403).json({error: 'Unauthorized access'});
+    if (truckDoc.createdBy !== userDoc.id) {
+      return res.status(403).json({error: 'ForbiddenAction'});
     }
 
-    if (truckDoc.assignedTo === driverDoc.id) {
-      return res.status(500).json({error: 'Truck already assigned'});
+    if (truckDoc.assignedTo === userDoc.id) {
+      return res.status(409).json({error: 'AlreadyAssigned'});
     }
 
-    await truckDoc.assignTo(user.id);
+    await Truck.assignTo(truckDoc.id, userDoc.id);
 
-    return res.status(200).json({message: 'Truck has been assigned'});
+    return res.status(200).json({status: 'Truck assigned successfully'});
   } catch (err) {
     console.log(err);
 
@@ -104,41 +109,139 @@ router.patch('/:truckId', async (req, res) => {
   }
 });
 
-router.put('/:id', validateReq(schemas.update, 'body'), async (req, res) => {
+router.patch('/:id/assign', async (req, res) => {
   console.log(req);
 
-  try {
-    const {user} = req;
-    const id = req.params.id;
-    const {name, status, type} = req.body;
+  const {user} = req;
+  const id = req.params.id;
 
-    if (!user || user.role !== 'Driver') {
-      return res.status(403).json({error: 'Unauthorized access'});
+  if (!user) {
+    return res.status(401).json({error: 'UnauthorizedAccess'});
+  }
+
+  try {
+    const userDoc = await User.findById(user.id);
+
+    if (!userDoc) {
+      return res.status(404).json({error: 'UserNotFound'});
     }
 
-    const driverDoc = await Driver.findById(user.id);
-
-    if (!driverDoc) {
-      return res.status(500).json({error: 'Driver not found'});
+    if (userDoc.role !== 'driver') {
+      return res.status(403).json({error: 'ForbiddenAction'});
     }
 
     const truckDoc = await Truck.findById(id);
 
     if (!truckDoc) {
-      return res.status(500).json({error: 'Truck not found'});
+      return res.status(404).json({error: 'TruckNotFound'});
     }
 
-    if (truckDoc.createdBy !== driverDoc.id) {
-      return res.status(403).json({error: 'Unauthorized access'});
+    if (truckDoc.createdBy !== userDoc.id) {
+      return res.status(403).json({error: 'ForbiddenAction'});
     }
 
-    if (truckDoc.assignedTo === driverDoc.id) {
-      return res.status(500).json({error: `Can't modify assigned truck`});
+    if (truckDoc.assignedTo === userDoc.id) {
+      return res.status(409).json({error: 'AlreadyAssigned'});
     }
 
-    await truckDoc.updateOne({name, status, type});
+    await Truck.assignTo(truckDoc.id, userDoc.id);
 
-    return res.status(200).json({message: 'Truck has been updated'});
+    return res.status(200).json({status: 'Truck assigned successfully'});
+  } catch (err) {
+    console.log(err);
+
+    return res.status(500).json({error: err.message});
+  }
+});
+
+router.patch(
+  '/:id/update',
+  validateReq(schemas.update, 'body'),
+  async (req, res) => {
+    console.log(req);
+
+    const {user} = req;
+    const {type} = req.body;
+    const id = req.params.id;
+
+    if (!user) {
+      return res.status(401).json({error: 'UnauthorizedAccess'});
+    }
+
+    try {
+      const userDoc = await User.findById(user.id);
+
+      if (!userDoc) {
+        return res.status(404).json({error: 'UserNotFound'});
+      }
+
+      if (userDoc.role !== 'driver') {
+        return res.status(403).json({error: 'ForbiddenAction'});
+      }
+
+      const truckDoc = await Truck.findById(id);
+
+      if (!truckDoc) {
+        return res.status(404).json({error: 'TruckNotFound'});
+      }
+
+      if (truckDoc.createdBy !== userDoc.id) {
+        return res.status(403).json({error: 'ForbiddenAction'});
+      }
+
+      if (truckDoc.assignedTo !== '') {
+        return res.status(409).json({error: 'TruckInUse'});
+      }
+
+      await truckDoc.updateOne({type});
+
+      return res.status(200).json({status: 'Truck updated successfully'});
+    } catch (err) {
+      console.log(err);
+
+      return res.status(500).json({error: err.message});
+    }
+  },
+);
+
+router.delete('/:id', async (req, res) => {
+  console.log(req);
+
+  const {user} = req;
+  const id = req.params.id;
+
+  if (!user) {
+    return res.status(401).json({error: 'UnauthorizedAccess'});
+  }
+
+  try {
+    const userDoc = await User.findById(user.id);
+
+    if (!userDoc) {
+      return res.status(404).json({error: 'UserNotFound'});
+    }
+
+    if (userDoc.role !== 'driver') {
+      return res.status(403).json({error: 'ForbiddenAction'});
+    }
+
+    const truckDoc = await Truck.findById(id);
+
+    if (!truckDoc) {
+      return res.status(404).json({error: 'TruckNotFound'});
+    }
+
+    if (truckDoc.createdBy !== userDoc.id) {
+      return res.status(403).json({error: 'ForbiddenAction'});
+    }
+
+    if (truckDoc.assignedTo !== '') {
+      return res.status(409).json({error: 'TruckInUse'});
+    }
+
+    await truckDoc.deleteOne({id});
+
+    return res.status(200).json({status: 'Truck deleted successfully'});
   } catch (err) {
     console.log(err);
 

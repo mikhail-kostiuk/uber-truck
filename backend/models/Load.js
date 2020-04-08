@@ -1,25 +1,42 @@
 const mongoose = require('mongoose');
 const schema = require('./schemas/Load');
 const Truck = require('./Truck');
+const {getTruckDimensions, getTruckPayload} = require('../utils/truck');
 class Load {
-  static async createLoad(name, shipperId, width, length, height, payload) {
-    console.log('class', name);
+  static async createLoad(userId, payload, dimensions) {
     return await this.create({
-      name,
-      createdBy: shipperId,
+      createdBy: userId,
       logs: [],
       status: 'NEW',
-      dimensions: {
-        width,
-        length,
-        height,
-      },
       payload,
+      dimensions,
     });
   }
 
   static async findByName(name) {
     return await this.findOne({name});
+  }
+
+  async changeState() {
+    let newStatus = null;
+    switch (this.state) {
+      case 'En route to Pick Up':
+        await this.updateOne({state: 'Arrived to Pick Up'});
+        newStatus = 'Arrived to Pick Up';
+        break;
+      case 'Arrived to Pick Up':
+        await this.updateOne({state: 'En route to delivery'});
+        newStatus = 'En route to delivery';
+        break;
+      case 'En route to delivery':
+        await this.updateOne({state: 'Arrived to delivery'});
+        newStatus = 'Arrived to delivery';
+        break;
+      default:
+        break;
+    }
+
+    return newStatus;
   }
 
   async post() {
@@ -32,6 +49,8 @@ class Load {
       return null;
     }
 
+    await truck.updateOne({status: 'OL'});
+
     const logs = this.logs;
     logs.push({message: 'En route to Pick Up', time: Date.now()});
 
@@ -39,36 +58,39 @@ class Load {
       status: 'ASSIGNED',
       state: 'En route to Pick Up',
       logs,
-      assignedTo: truck.createdBy,
+      assignedTo: truck.assignedTo,
     });
 
-    return true;
+    return truck.assignedTo;
   }
 
   async findTruck() {
-    console.log('object');
-    const trucks = await Truck.find({status: 'IS'});
+    const trucks = await Truck.find({status: 'IS', assignedTo: {$ne: ''}});
 
-    console.log(trucks);
     if (trucks.length === 0) {
       return null;
     }
 
-    for (const truck of trucks) {
+    for (let i = 0; i < trucks.length; i++) {
+      const truck = {...trucks[i]._doc};
+
+      truck.payload = getTruckPayload(truck.type);
+      truck.dimensions = getTruckDimensions(truck.type);
+
       if (this.fitLoad(truck)) {
-        return truck;
+        return trucks[i];
       }
     }
 
     return null;
   }
 
-  async fitLoad(truck) {
+  fitLoad(truck) {
     return (
-      this.payload < truck.payload &&
-      this.dimensions.width < truck.dimensions.width &&
-      this.dimensions.height < truck.dimensions.height &&
-      this.dimensions.length < truck.dimensions.length
+      this.payload <= truck.payload &&
+      this.dimensions.width <= truck.dimensions.width &&
+      this.dimensions.height <= truck.dimensions.height &&
+      this.dimensions.length <= truck.dimensions.length
     );
   }
 }

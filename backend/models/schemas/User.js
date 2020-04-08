@@ -2,12 +2,8 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-const Driver = new Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  email: {
+const User = new Schema({
+  username: {
     type: String,
     required: true,
   },
@@ -15,6 +11,10 @@ const Driver = new Schema({
     type: String,
     required: true,
   },
+  role: {
+    type: String,
+    required: true,
+  },
 });
 
-module.exports = Driver;
+module.exports = User;

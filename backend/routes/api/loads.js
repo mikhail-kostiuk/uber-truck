@@ -1,7 +1,6 @@
 const express = require('express');
 const Load = require('../../models/Load');
-const Driver = require('../../models/Driver');
-const Shipper = require('../../models/Shipper');
+const User = require('../../models/User');
 const schemas = require('../../joi/loads');
 const {validateReq} = require('../middleware/validation');
 
@@ -10,36 +9,27 @@ const router = new express.Router();
 router.post('/', validateReq(schemas.create, 'body'), async (req, res) => {
   console.log(req);
 
+  const {user} = req;
+  const {payload, dimensions} = req.body;
+
+  if (!user) {
+    return res.status(401).json({error: 'UnauthorizedAccess'});
+  }
+
   try {
-    const {user} = req;
-    const {name, width, length, height, payload} = req.body;
+    const userDoc = await User.findById(user.id);
 
-    if (!user || user.role !== 'Shipper') {
-      return res.status(403).json({error: 'Unauthorized access'});
+    if (!userDoc) {
+      return res.status(404).json({error: 'UserNotFound'});
     }
 
-    const shipperDoc = await Shipper.findById(user.id);
-
-    if (!shipperDoc) {
-      return res.status(500).json({error: 'Shipper not found'});
+    if (userDoc.role !== 'shipper') {
+      return res.status(403).json({error: 'ForbiddenAction'});
     }
 
-    const loadDoc = await Load.findByName(name);
+    await Load.createLoad(user.id, payload, dimensions);
 
-    if (loadDoc) {
-      return res.status(500).json({error: 'Load name already exists'});
-    }
-
-    const createdLoadDoc = await Load.createLoad(
-      name,
-      user.id,
-      width,
-      length,
-      height,
-      payload,
-    );
-
-    return res.status(200).json(createdLoadDoc);
+    return res.status(200).json({status: 'Load created successfully'});
   } catch (err) {
     console.log(err);
 
@@ -53,73 +43,74 @@ router.get('/', async (req, res) => {
   const {user} = req;
 
   if (!user) {
-    return res.status(403).json({error: 'Unauthorized access'});
+    return res.status(401).json({error: 'UnauthorizedAccess'});
   }
 
-  let userDoc = null;
-
   try {
-    if (user.role === 'Driver') {
-      userDoc = await Driver.findById(user.id);
-    } else {
-      userDoc = await Shipper.findById(user.id);
-    }
+    const userDoc = await User.findById(user.id);
 
     if (!userDoc) {
-      return res.status(500).json({error: 'User not found'});
+      return res.status(404).json({error: 'UserNotFound'});
     }
 
-    if (user.role === 'Driver') {
-      const assignedLoadsDocs = await userDoc.getAssignedLoads();
-      return res.status(200).json(assignedLoadsDocs);
+    let loads = null;
+
+    if (userDoc.role === 'shipper') {
+      loads = await userDoc.getCreatedLoads();
     } else {
-      const createdLoadsDocs = await userDoc.getCreatedLoads();
-      return res.status(200).json(createdLoadsDocs);
+      loads = await userDoc.getAssignedLoads();
     }
+
+    return res.status(200).json({status: 'Success', loads});
   } catch (err) {
     return res.status(500).json({error: err.message});
   }
 });
 
-router.put('/:id', validateReq(schemas.update, 'body'), async (req, res) => {
+router.patch('/:id/post', async (req, res) => {
   console.log(req);
 
-  try {
-    const {user} = req;
-    const id = req.params.id;
-    const {name, width, length, height, payload} = req.body;
+  const {user} = req;
+  const id = req.params.id;
 
-    if (!user || user.role !== 'Shipper') {
-      return res.status(403).json({error: 'Unauthorized access'});
+  if (!user) {
+    return res.status(401).json({error: 'UnauthorizedAccess'});
+  }
+
+  try {
+    const userDoc = await User.findById(user.id);
+
+    if (!userDoc) {
+      return res.status(404).json({error: 'UserNotFound'});
     }
 
-    const shipperDoc = await Shipper.findById(user.id);
-
-    if (!shipperDoc) {
-      return res.status(500).json({error: 'Driver not found'});
+    if (userDoc.role !== 'shipper') {
+      return res.status(401).json({error: 'UnauthorizedAccess'});
     }
 
     const loadDoc = await Load.findById(id);
 
     if (!loadDoc) {
-      return res.status(500).json({error: 'Load not found'});
+      return res.status(404).json({error: 'LoadNotFound'});
     }
 
-    if (loadDoc.createdBy !== user.id) {
-      return res.status(403).json({error: 'Unauthorized access'});
+    if (loadDoc.createdBy !== userDoc.id) {
+      return res.status(401).json({error: 'UnauthorizedAccess'});
     }
 
     if (loadDoc.status !== 'NEW') {
-      return res.status(500).json({error: `Can't modify load in progress`});
+      return res.status(409).json({error: `LoadAlreadyPosted`});
     }
 
-    await loadDoc.updateOne({
-      name,
-      dimensions: {width, length, height},
-      payload,
-    });
+    const driver = await loadDoc.post();
 
-    return res.status(200).json({message: 'Load has been updated'});
+    if (driver) {
+      res
+        .status(200)
+        .json({status: 'Load posted successfully', assignedTo: driver});
+    }
+
+    return res.status(200).json({status: 'No drivers found'});
   } catch (err) {
     console.log(err);
 
@@ -127,83 +118,44 @@ router.put('/:id', validateReq(schemas.update, 'body'), async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.patch('/:id/state', async (req, res) => {
   console.log(req);
 
   const {user} = req;
   const id = req.params.id;
 
-  if (!user || user.role !== 'Shipper') {
-    return res.status(403).json({error: 'Unauthorized access'});
-  }
-
-  const shipperDoc = await Shipper.findById(user.id);
-
-  if (!shipperDoc) {
-    return res.status(500).json({error: 'Shipper not found'});
+  if (!user) {
+    return res.status(401).json({error: 'UnauthorizedAccess'});
   }
 
   try {
+    const userDoc = await User.findById(user.id);
+
+    if (!userDoc) {
+      return res.status(404).json({error: 'UserNotFound'});
+    }
+
+    if (userDoc.role !== 'driver') {
+      return res.status(401).json({error: 'UnauthorizedAccess'});
+    }
+
     const loadDoc = await Load.findById(id);
 
     if (!loadDoc) {
-      return res.status(500).json({error: 'Load not found'});
+      return res.status(404).json({error: 'LoadNotFound'});
     }
 
-    if (loadDoc.createdBy !== shipperDoc.id) {
-      return res.status(403).json({error: 'Unauthorized access'});
+    if (loadDoc.assignedTo !== userDoc.id) {
+      return res.status(401).json({error: 'UnauthorizedAccess'});
     }
 
-    if (loadDoc.status !== 'NEW') {
-      return res.status(500).json({error: `Can't delete load in progress`});
+    const state = await loadDoc.changeState();
+
+    if (state) {
+      res.status(200).json({status: 'Load status changed successfully'});
     }
 
-    await loadDoc.deleteOne({id});
-
-    return res.status(200).json({message: 'Load has been deleted'});
-  } catch (err) {
-    console.log(err);
-
-    return res.status(500).json({error: err.message});
-  }
-});
-
-router.patch('/:id', async (req, res) => {
-  console.log(req);
-
-  const {user} = req;
-  const id = req.params.id;
-
-  if (!user || user.role !== 'Shipper') {
-    return res.status(403).json({error: 'Unauthorized access'});
-  }
-
-  const shipperDoc = await Shipper.findById(user.id);
-
-  if (!shipperDoc) {
-    return res.status(500).json({error: 'Shipper not found'});
-  }
-
-  try {
-    const loadDoc = await Load.findById(id);
-
-    if (!loadDoc) {
-      return res.status(500).json({error: 'Load not found'});
-    }
-
-    if (loadDoc.createdBy !== shipperDoc.id) {
-      return res.status(403).json({error: 'Unauthorized access'});
-    }
-
-    if (loadDoc.status !== 'NEW') {
-      return res.status(500).json({error: `Can't post load in progress`});
-    }
-
-    if (await loadDoc.post()) {
-      res.status(200).json({message: 'Load has been assigned to driver'});
-    }
-
-    return res.status(200).json({message: 'No available trucks'});
+    return res.status(409).json({error: 'AlreadyDelivered'});
   } catch (err) {
     console.log(err);
 

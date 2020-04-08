@@ -1,4 +1,4 @@
-const trucksCapacity = {
+const trucksProps = {
   'SPRINTER': {
     payload: 1700,
     dimensions: {
@@ -25,8 +25,11 @@ const trucksCapacity = {
   },
 };
 
-function getTruckCapacity(type) {
-  return trucksCapacity[type];
+function getTruckDimensions(type) {
+  return trucksProps[type].dimensions;
+}
+function getTruckPayload(type) {
+  return trucksProps[type].payload;
 }
 
-module.exports = {getTruckCapacity};
+module.exports = {getTruckDimensions, getTruckPayload};

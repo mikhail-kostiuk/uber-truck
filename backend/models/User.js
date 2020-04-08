@@ -1,17 +1,22 @@
 const mongoose = require('mongoose');
-const schema = require('./schemas/Driver');
+const schema = require('./schemas/User');
 const Truck = require('./Truck');
 const Load = require('./Load');
 const {encryptPassword, comparePasswords} = require('../utils/password');
-class Driver {
-  static async createDriver(name, email, password) {
+
+class User {
+  static async createUser(username, password, role) {
     const encryptedPassword = await encryptPassword(password);
 
-    return await this.create({name, email, password: encryptedPassword});
+    return await this.create({
+      username,
+      password: encryptedPassword,
+      role: role.toLowerCase(),
+    });
   }
 
-  static async findByEmail(email) {
-    return await this.findOne({email});
+  static async findByUsername(username) {
+    return await this.findOne({username});
   }
 
   async verifyPassword(password) {
@@ -28,11 +33,15 @@ class Driver {
     return await Truck.find({createdBy: this.id});
   }
 
+  async getCreatedLoads() {
+    return await Load.find({createdBy: this.id});
+  }
+
   async getAssignedLoads() {
     return await Load.find({assignedTo: this.id});
   }
 }
 
-schema.loadClass(Driver);
+schema.loadClass(User);
 
-module.exports = mongoose.model('Driver', schema);
+module.exports = mongoose.model('User', schema);

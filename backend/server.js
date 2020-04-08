@@ -3,10 +3,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const auth = require('./routes/middleware/auth');
-const users = require('./routes/api/users');
-const trucks = require('./routes/api/trucks');
-const loads = require('./routes/api/loads');
-const drivers = require('./routes/api/drivers');
+const authRoute = require('./routes/api/auth');
+const trucksRoute = require('./routes/api/trucks');
+const loadsRoute = require('./routes/api/loads');
 
 const PORT = process.env.PORT || 5050;
 
@@ -15,10 +14,9 @@ const app = express();
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 app.use(auth);
-app.use('/api/users', users);
-app.use('/api/trucks', trucks);
-app.use('/api/loads', loads);
-app.use('/api/drivers', drivers);
+app.use('/api/auth', authRoute);
+app.use('/api/trucks', trucksRoute);
+app.use('/api/loads', loadsRoute);
 
 start();
 
@@ -33,6 +31,6 @@ async function start() {
 
     app.listen(PORT, () => console.log(`Server listening on port: ${PORT}`));
   } catch (err) {
-    // console.log(err);
+    console.log(err);
   }
 }
